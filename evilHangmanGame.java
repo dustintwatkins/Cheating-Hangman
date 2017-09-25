@@ -23,7 +23,7 @@ public class evilHangmanGame implements IEvilHangmanGame{
     	loadDictionary(dictionary, wordLength);
     	length = wordLength;
     	pattern = lettersToDashes();
-   	}
+   	}//end startGame()
     
     public void playGame(int g)
     {
@@ -43,12 +43,13 @@ public class evilHangmanGame implements IEvilHangmanGame{
 			}catch(GuessAlreadyMadeException excpt) {
 				System.out.println("You already have guessed that letter!");
 			}
-    	}
-    }
+    	}//end while loop
+    }//end playGame()
     
     @Override
     public Set<String> makeGuess(char c) throws GuessAlreadyMadeException
     {
+		System.out.println("words size = " + words.size());
     	String guess = Character.toString(c);
     	if(guessedChars.contains(guess))
     	{
@@ -56,11 +57,76 @@ public class evilHangmanGame implements IEvilHangmanGame{
     	}
     	guessedChars.add(guess);
 		//Build the map...
+		//subsets
+		//iterate through words
+			//build key from word
+			//check if key exists
+			//if exists -> add to subset
+			//else -> create subset
+		mapping(c);
+		String key = largestSet();
+		pattern = key;
+		System.out.println("key = " + key);
+		words = map.get(key);
+		System.out.println("words size after = " + words.size());
 		//SHOULD ONLY DECREMENT IF THERE IS AT LEAST 1 WORD THAT DOESNT CONTAIN GUESS
 		numGuesses--;
     	return words;
-    }
-    
+    }//end makeGuess()
+    public void mapping(char guess)
+	{
+		System.out.println("entered mapping method");
+		map.clear();
+		for(String s: words)
+		{
+			System.out.println("word = " +s);
+			StringBuilder sb = new StringBuilder();
+			for(int i = 0; i < s.length(); i++)
+			{
+			 	if(s.charAt(i) == guess)
+				{
+					sb.append(guess);
+				}
+				else if(pattern.charAt(i) != '-')
+				{
+					sb.append(pattern.charAt(i));
+				}
+				else
+				{
+					sb.append("-");
+				}
+			}//end inner for loop
+			String key = sb.toString();
+			System.out.println("key = " + key);
+			if(map.containsKey(key))
+			{
+				map.get(key).add(s);
+			}
+			else
+			{
+				Set<String> subsetWords = new TreeSet<>();
+				subsetWords.add(s);
+				map.put(key, subsetWords);
+			}
+		}//end outer for loop
+	}//end mapping
+
+	public String largestSet()
+	{
+		String lSet = "";
+		int num = 0;
+		for(String s : map.keySet())
+		{
+			Set<String> temp = map.get(s);
+			if(temp.size() > num)
+			{
+				num = temp.size();
+				lSet = s;
+			}
+		}
+		return lSet;
+	}//end largestSet()
+
     public void loadDictionary(File dictionary, int wordLength)
     {
     	try{
@@ -80,9 +146,6 @@ public class evilHangmanGame implements IEvilHangmanGame{
     	catch(FileNotFoundException e){
     		System.out.println("error found with loading the file...");
     	}
-    	
-    	
-
     }// end startGame method
     
     public char checkChar(String input)
@@ -100,7 +163,9 @@ public class evilHangmanGame implements IEvilHangmanGame{
     		while(bool)
     		{
     			System.out.print("Invalid guess, please try again!");
-    			String str = System.console().readLine();
+//    			Scanner in = new Scanner(System.in);
+//				in.next();
+				String str = System.console().readLine();
     			str = str.toLowerCase();
     			char c2 = str.charAt(0); 
     			if(str.length() == 1 && Character.isLetter(c2))
@@ -146,5 +211,8 @@ public class evilHangmanGame implements IEvilHangmanGame{
     }
 }//end evilHangman class
 
-
+//choose sets by...
+//1. most words compare subset size
+//2. fewest letters compare keys
+//3. right most letters compare keys
 
