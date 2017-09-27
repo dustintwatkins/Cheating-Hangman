@@ -24,24 +24,6 @@ public class Main{
     	evilHangmanGame game = new evilHangmanGame();
     	game.startGame(new File(inputDict), wordLength);
     	game.playGame(guesses);
- 
-    	
-       /* while(guesses != 0 !hasWon)
-        {
-            try{
-            makeGuess(char)
-            while(validInput)
-            {
-                keep asking
-                System.println(game.getworkingKey)
-            }
-            }//try end
-            catch(AlreadyMadeGuess){
-
-            }
-
-        }
-        */
     }//end main method()
     
     public static int verifyLength(int l)

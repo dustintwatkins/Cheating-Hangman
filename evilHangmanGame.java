@@ -16,6 +16,7 @@ public class evilHangmanGame implements IEvilHangmanGame{
     Set<String> guessedChars = new TreeSet<String>();
     int length = 0;
     String pattern = null;
+	char g;
     private int numGuesses = 0; 
     
     public void startGame(File dictionary, int wordLength)
@@ -28,15 +29,28 @@ public class evilHangmanGame implements IEvilHangmanGame{
     public void playGame(int g)
     {
     	numGuesses = g;
-    	while(numGuesses != 0 /*&& hasn't won*/)
+    	while(numGuesses != 0 && !hasWon(pattern))
     	{
     		String usedChars = outputGuessedChars();
     		System.out.println("You have " + numGuesses + " guesses left");
     		System.out.println("Used letters: " + usedChars);
     		System.out.println("Word: " + pattern);
     		System.out.print("Enter Guess: ");
-    		String input = System.console().readLine();
-    		input = input.toLowerCase();
+			Scanner scan = new Scanner(System.in);
+			String input = scan.nextLine();
+			if(input.equals(""))
+			{
+				boolean bool = true;
+				while(bool) {
+					System.out.println("Invalid input, try again");
+					String s = scan.nextLine();
+					if(!s.equals(""))
+					{
+						input = s;
+						bool = false;
+					}
+				}
+			}
     		char c = checkChar(input);
     		try{
 				makeGuess(c);
@@ -44,42 +58,66 @@ public class evilHangmanGame implements IEvilHangmanGame{
 				System.out.println("You already have guessed that letter!");
 			}
     	}//end while loop
+		if(hasWon(pattern))
+		{
+			System.out.println("Congratulations, you won! The word was " + pattern +"!");
+		}
+		else
+		{
+			String word = "";
+			for(String s : words)
+			{
+				word = s;
+				break;
+			}
+			System.out.println("Sorry you lose, the word was " + word + "!");
+		}
     }//end playGame()
     
     @Override
     public Set<String> makeGuess(char c) throws GuessAlreadyMadeException
     {
-		System.out.println("words size = " + words.size());
+//		System.out.println("words size = " + words.size());
     	String guess = Character.toString(c);
     	if(guessedChars.contains(guess))
     	{
     		throw new GuessAlreadyMadeException();
     	}
+		g = c;
     	guessedChars.add(guess);
-		//Build the map...
-		//subsets
-		//iterate through words
-			//build key from word
-			//check if key exists
-			//if exists -> add to subset
-			//else -> create subset
 		mapping(c);
 		String key = largestSet();
+		if(key.equals(pattern))
+		{
+			System.out.println("Sorry, there are no " + c + "'s");
+			System.out.println("");
+			numGuesses--;
+		}
+		else
+		{
+			int count = 0;
+			for(int i = 0; i < key.length(); i ++)
+			{
+				if(key.charAt(i) == c)
+				{
+					count++;
+				}
+			}
+			System.out.println("Yes, there is " + count + " " + c );
+			System.out.println("");
+		}
 		pattern = key;
-		System.out.println("key = " + key);
 		words = map.get(key);
-		System.out.println("words size after = " + words.size());
-		//SHOULD ONLY DECREMENT IF THERE IS AT LEAST 1 WORD THAT DOESNT CONTAIN GUESS
-		numGuesses--;
+		//SHOULD ONLY DECREMENT IF THERE IS AT LEAST 1 WORD THAT DOESN'T CONTAIN GUESS
+//		numGuesses--;
     	return words;
     }//end makeGuess()
+
     public void mapping(char guess)
 	{
-		System.out.println("entered mapping method");
 		map.clear();
 		for(String s: words)
 		{
-			System.out.println("word = " +s);
 			StringBuilder sb = new StringBuilder();
 			for(int i = 0; i < s.length(); i++)
 			{
@@ -97,7 +135,6 @@ public class evilHangmanGame implements IEvilHangmanGame{
 				}
 			}//end inner for loop
 			String key = sb.toString();
-			System.out.println("key = " + key);
 			if(map.containsKey(key))
 			{
 				map.get(key).add(s);
@@ -123,9 +160,75 @@ public class evilHangmanGame implements IEvilHangmanGame{
 				num = temp.size();
 				lSet = s;
 			}
+			else if (temp.size() == num)
+			{
+				lSet = fewestLetters(lSet, s);
+			}
 		}
 		return lSet;
 	}//end largestSet()
+
+	public String fewestLetters(String s1, String s2)
+	{
+		int s1Count = countGuess(s1);
+		int s2Count = countGuess(s2);
+
+		if(s1Count > s2Count)
+		{
+			return s2;
+		}
+		else if(s1Count < s2Count)
+		{
+			return s1;
+		}
+		else
+		{
+			//size are equal... check rightmost
+			return rightMost(s1, s2);
+		}
+	}//end fewestLetters()
+
+	public int countGuess(String s)
+	{
+		int count = 0;
+		for(int i = 0; i < s.length(); i++)
+		{
+			if(s.charAt(i) == g)
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+
+	public String rightMost(String s1, String s2)
+	{
+		int l = s1.length();
+		for(int i = l -1; i > -1; i--)
+		{
+			if(s1.charAt(i) == '-' && s2.charAt(i) != '-')
+			{
+				return s2;
+			}
+			else if(s1.charAt(i) != '-' && s2.charAt(i) == '-')
+			{
+				return s1;
+			}
+		}//end for loop
+		//shouldn't ever return here
+		System.out.println("shouldn't return here... check this");
+		return s1;
+	}//end rightMost()
+
+	public boolean hasWon(String s)
+	{
+		for(int i = 0; i < s.length(); i++)
+		{
+			if(s.charAt(i) == '-')
+				return false;
+		}
+		return true;
+	}
 
     public void loadDictionary(File dictionary, int wordLength)
     {
@@ -150,34 +253,33 @@ public class evilHangmanGame implements IEvilHangmanGame{
     
     public char checkChar(String input)
     {
-    	input = input.toLowerCase();
-    	char c = input.charAt(0);
-    	if(input.length() == 1 && Character.isLetter(c))
-    	{
-//    		System.out.println("valid guess");
-    		return c;
-    	}
-    	else
-    	{
-    		boolean bool = true;
-    		while(bool)
-    		{
-    			System.out.print("Invalid guess, please try again!");
-//    			Scanner in = new Scanner(System.in);
-//				in.next();
-				String str = System.console().readLine();
-    			str = str.toLowerCase();
-    			char c2 = str.charAt(0); 
-    			if(str.length() == 1 && Character.isLetter(c2))
-    	    	{
-//    	    		System.out.println("valid guess");
-    	    		bool = false;
-    	    		return c2;
-    	    	}
-    		}//end while loop
-    	}
-//    	System.out.println("should not return here = " + c);
-    	return c;
+		char c = input.charAt(0);
+			if (input.length() == 1 && Character.isLetter(c))
+			{
+				return c;
+
+			}
+			else
+			{
+				boolean bool = true;
+				while (bool) {
+					System.out.print("Invalid guess, please try again!");
+					Scanner scan = new Scanner(System.in);
+					String str = scan.nextLine();
+					if (str.equals("")) {
+
+					} else {
+						char c2 = str.charAt(0);
+						if (str.length() == 1 && Character.isLetter(c2)) {
+							//    	    		System.out.println("valid guess");
+							bool = false;
+							return c2;
+						}
+					}
+				}//end while loop
+			}
+		System.out.println("bad return");
+			return '-';
     }//end checkChar()
     
     public String lettersToDashes()
@@ -211,8 +313,4 @@ public class evilHangmanGame implements IEvilHangmanGame{
     }
 }//end evilHangman class
 
-//choose sets by...
-//1. most words compare subset size
-//2. fewest letters compare keys
-//3. right most letters compare keys
 
