@@ -1,6 +1,8 @@
 package hangman;
 
 import java.io.File;
+import java.util.TreeSet;
+import java.util.Set;
 
 public class Main{
 

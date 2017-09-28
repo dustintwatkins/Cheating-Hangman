@@ -38,12 +38,14 @@ public class evilHangmanGame implements IEvilHangmanGame{
     		System.out.print("Enter Guess: ");
 			Scanner scan = new Scanner(System.in);
 			String input = scan.nextLine();
+			input = input.toLowerCase();
 			if(input.equals(""))
 			{
 				boolean bool = true;
 				while(bool) {
 					System.out.println("Invalid input, try again");
 					String s = scan.nextLine();
+					s = s.toLowerCase();
 					if(!s.equals(""))
 					{
 						input = s;
@@ -266,6 +268,7 @@ public class evilHangmanGame implements IEvilHangmanGame{
 					System.out.print("Invalid guess, please try again!");
 					Scanner scan = new Scanner(System.in);
 					String str = scan.nextLine();
+					str = str.toLowerCase();
 					if (str.equals("")) {
 
 					} else {
